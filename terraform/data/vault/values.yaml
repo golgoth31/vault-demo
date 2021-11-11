@@ -1,0 +1,81 @@
+injector:
+  enabled: false
+
+server:
+  ingress:
+    enabled: true
+    annotations:
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.tls.certresolver: "default"
+      traefik.ingress.kubernetes.io/router.tls.domains.0.main: "vault.notrenet.ovh"
+      traefik.ingress.kubernetes.io/router.tls.domains.0.sans: "*.notrenet.ovh"
+
+    # Optionally use ingressClassName instead of deprecated annotation.
+    # See: https://kubernetes.io/docs/concepts/services-networking/ingress/#deprecated-annotation
+    ingressClassName: traefik
+
+    # As of Kubernetes 1.19, all Ingress Paths must have a pathType configured. The default value below should be sufficient in most cases.
+    # See: https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types for other possible values.
+    pathType: Prefix
+
+    # When HA mode is enabled and K8s service registration is being used,
+    # configure the ingress to point to the Vault active service.
+    activeService: true
+    hosts:
+      - host: vault.notrenet.ovh
+        paths: []
+  extraSecretEnvironmentVars:
+    - envName: VAULT_SEAL_TYPE
+      secretName: vault-kms
+      secretKey: VAULT_SEAL_TYPE
+    - envName: VAULT_AWSKMS_SEAL_KEY_ID
+      secretName: vault-kms
+      secretKey: VAULT_AWSKMS_SEAL_KEY_ID
+    - envName: AWS_DEFAULT_REGION
+      secretName: vault-kms
+      secretKey: AWS_DEFAULT_REGION
+    - envName: AWS_ACCESS_KEY_ID
+      secretName: vault-kms
+      secretKey: AWS_ACCESS_KEY_ID
+    - envName: AWS_SECRET_ACCESS_KEY
+      secretName: vault-kms
+      secretKey: AWS_SECRET_ACCESS_KEY
+  ha:
+    enabled: true
+    raft:
+      enabled: true
+      config: |
+        ui = true
+
+        listener "tcp" {
+          tls_disable = 1
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+        }
+
+        storage "raft" {
+          path = "/vault/data"
+          retry_join {
+            leader_api_addr = "http://vault-0.vault-internal:8200"
+          }
+          retry_join {
+            leader_api_addr = "http://vault-1.vault-internal:8200"
+          }
+          retry_join {
+            leader_api_addr = "http://vault-2.vault-internal:8200"
+          }
+          autopilot {
+            cleanup_dead_servers = "true"
+            last_contact_threshold = "200ms"
+            last_contact_failure_threshold = "10m"
+            max_trailing_logs = 250
+            min_quorum = 3
+            server_stabilization_time = "10s"
+          }
+        }
+
+        service_registration "kubernetes" {}
+
+# Vault UI
+ui:
+  enabled: true

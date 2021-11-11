@@ -1,0 +1,11 @@
+apiVersion: v1
+data:
+  OVH_APPLICATION_KEY: aaaaa
+  OVH_APPLICATION_SECRET: aaaa
+  OVH_CONSUMER_KEY: aaaaa
+  OVH_ENDPOINT: aaaaa
+kind: Secret
+metadata:
+  name: traefik-ovh
+  namespace: default
+type: Opaque

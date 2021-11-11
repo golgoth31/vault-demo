@@ -1,0 +1,26 @@
+apiVersion: skaffold/v2alpha3 #  	version of the configuration.
+kind: Config #  	always Config.
+
+profiles:
+  - name: dev
+    build:
+      artifacts:
+        - image: golgoth31/vault-config
+          context: .
+          docker:
+            dockerfile: Dockerfile
+            # dockerfile: build/package/Dockerfile
+            noCache: false
+      local:
+        push: true
+        # useDockerCLI: true
+
+    deploy:
+      kubectl:
+        manifests:
+          - deployments/k8s/job.yaml
+      # helm3:
+      #   releases:
+      #     - name:
+      #       chartPath: deployments/helm/domosense
+      #       namespace: domosense

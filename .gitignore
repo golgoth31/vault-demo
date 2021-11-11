@@ -1,0 +1,5 @@
+**/.terraform*
+**/terraform.tfstate*
+env
+traefik-ovh.yaml
+**/kubeconfig

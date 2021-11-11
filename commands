@@ -1,0 +1,8 @@
+# get lb ip
+./scw lb lb get $(./scw lb lb list -o json | jq '.[0].id' | tr -d '"') -o json | jq '.ip[0].ip_address' | tr -d '"'
+
+# get logs from vault-config job
+stern --kubeconfig=kubeconfig vault-config
+
+# watch pod state
+watch "kubectl get pod --kubeconfig=kubeconfig"

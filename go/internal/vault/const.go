@@ -1,0 +1,19 @@
+package vault
+
+// VaultSecretsType ...
+const VaultSecretsType string = "kv-v2"
+
+// VaultAuthPath ...
+const VaultAuthPath string = "userpass"
+
+// VaultBasePath ...
+const VaultBasePath string = "production"
+
+// VaultSecretsPath ...
+const VaultSecretsPath string = VaultBasePath + "/secrets"
+
+// VaultSecretsData ...
+const VaultSecretsData string = VaultBasePath + "/data"
+
+// VaultSecretsMetadata ...
+const VaultSecretsMetadata string = VaultBasePath + "/metadata"
