@@ -227,7 +227,6 @@ func VaultInitDB(ctx context.Context, client *vault.Client, fs embed.FS) error {
 	timeout := 5 * time.Second
 	sysClient := client.Sys()
 	logicalClient := client.Logical()
-	tokenClient := client.Auth().Token()
 
 	// ensure we are unsealed
 	initDatabase, err := VaultUnseal(ctx, client)
@@ -237,9 +236,6 @@ func VaultInitDB(ctx context.Context, client *vault.Client, fs embed.FS) error {
 	}
 
 	if initDatabase {
-		// starting to use root token
-		// client.SetToken(rootToken)
-
 		// mount secret
 		mounts, err := sysClient.ListMounts()
 		if err != nil {
@@ -269,9 +265,6 @@ func VaultInitDB(ctx context.Context, client *vault.Client, fs embed.FS) error {
 			log.Error().Err(err).Msg("")
 		}
 
-		authTokenAccessor := auths["token/"].Accessor
-		log.Debug().Msgf("%v", auths)
-
 		if _, ok := auths[VaultAuthPath+"/"]; !ok {
 			log.Info().Msg("Enabling user/password auth: " + VaultAuthPath)
 
@@ -299,7 +292,6 @@ func VaultInitDB(ctx context.Context, client *vault.Client, fs embed.FS) error {
 		}
 
 		// add policy
-
 		adminPolicy, err := fs.ReadFile("vault/policies/admin.hcl")
 		if err != nil {
 			log.Error().Err(err).Msg("Unable to read admin policy")
@@ -315,36 +307,6 @@ func VaultInitDB(ctx context.Context, client *vault.Client, fs embed.FS) error {
 		)
 		if err != nil {
 			log.Error().Err(err).Msg("Unable to put policy")
-		}
-
-		// add vault-config entity
-		entityData := map[string]interface{}{}
-		entityData["name"] = "demo"
-		entityData["metadata"] = map[string]string{
-			"email":     "admin@admin.local",
-			"lastname":  "Admin",
-			"firstname": "Admin",
-		}
-		entityData["policies"] = []string{
-			"admin",
-			"default",
-		}
-		identity, err := logicalClient.Write("identity/entity", entityData)
-
-		if err != nil {
-			log.Error().Err(err).Msg("")
-		}
-
-		log.Debug().Msgf("%+v", identity)
-		// add vault-config app alias
-		aliasData := map[string]interface{}{}
-		aliasData["name"] = "demo"
-		aliasData["canonical_id"] = identity.Data["id"]
-		aliasData["mount_accessor"] = authTokenAccessor
-		_, err = logicalClient.Write("identity/entity-alias", aliasData)
-
-		if err != nil {
-			log.Error().Err(err).Msg("")
 		}
 
 		// affect default password
@@ -363,34 +325,6 @@ func VaultInitDB(ctx context.Context, client *vault.Client, fs embed.FS) error {
 		if err != nil {
 			log.Error().Err(err).Msg("")
 		}
-
-		adminRoleData := map[string]interface{}{
-			"allowed_entity_aliases": []string{
-				"demo",
-			},
-			"allowed_policies": []string{
-				"demo",
-			},
-		}
-		_, err = logicalClient.Write("auth/token/roles/demo", adminRoleData)
-
-		if err != nil {
-			log.Error().Err(err).Msg("")
-		}
-		// generate new token for me
-		tokenData := &vault.TokenCreateRequest{
-			EntityAlias: "demo",
-		}
-		adminToken, err := tokenClient.CreateWithRole(tokenData, "demo")
-
-		if err != nil {
-			log.Error().Err(err).Msg("")
-		}
-
-		// switching to admin token; forgetting root
-		log.Debug().Msgf("admin user token (bad to print): %s", adminToken.Auth.ClientToken)
-		log.Info().Msg("switching to admin user")
-		client.SetToken(adminToken.Auth.ClientToken)
 
 		secretData := map[string]interface{}{
 			"data": map[string]interface{}{
