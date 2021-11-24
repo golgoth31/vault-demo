@@ -25,3 +25,14 @@ resource "helm_release" "traefik" {
     "${file("data/traefik/values.yaml")}"
   ]
 }
+
+resource "helm_release" "external-dns" {
+  depends_on = [time_sleep.wait_60_seconds]
+  name       = "external-dns"
+  repository = "https://kubernetes-sigs.github.io/external-dns/"
+  chart      = "external-dns"
+  version    = "1.6.0"
+  values = [
+    "${file("data/external-dns/values.yaml")}"
+  ]
+}

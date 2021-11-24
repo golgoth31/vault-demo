@@ -8,7 +8,7 @@ server:
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.tls.certresolver: "default"
       traefik.ingress.kubernetes.io/router.tls.domains.0.main: "vault.notrenet.ovh"
-      traefik.ingress.kubernetes.io/router.tls.domains.0.sans: "*.notrenet.ovh"
+      # traefik.ingress.kubernetes.io/router.tls.domains.0.sans: "*.notrenet.ovh"
 
     # Optionally use ingressClassName instead of deprecated annotation.
     # See: https://kubernetes.io/docs/concepts/services-networking/ingress/#deprecated-annotation

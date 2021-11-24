@@ -20,6 +20,8 @@ providers:
     enabled: false
   kubernetesIngress:
     enabled: true
+    publishedService:
+      enabled: true
 additionalArguments:
   - "--api.insecure=true"
   - "--metrics.prometheus=true"
@@ -27,10 +29,9 @@ additionalArguments:
   - "--certificatesresolvers.default.acme.email=david.sabatie@notrenet.com"
   - "--certificatesresolvers.default.acme.dnsChallenge.provider=ovh"
   - "--certificatesresolvers.default.acme.dnsChallenge.delayBeforeCheck=0s"
-# service:
-#   loadBalancerIP: "192.168.10.201"
-#   annotations:
-#     metallb.universe.tf/address-pool: home-pool
+service:
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: notrenet.ovh
 resources:
   requests:
     cpu: 10m
